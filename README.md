@@ -13,7 +13,7 @@ This project is capable of extracting the audio files and comments from audioboo
 # Configuration
 
 - Log in to `missevan.com` in a browser, as usual
-- Using your browser's dev tools, you now need to find the cookies for this sight
+- Using your browser's dev tools, you now need to find the cookies for this site
     * e.g. For Chrome...
     * Press F12 to bring up the developer console
     * Find the `Application` tab at the top of the console
