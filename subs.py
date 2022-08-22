@@ -1,3 +1,4 @@
+from decimal import Decimal
 import os
 import re
 
@@ -14,17 +15,28 @@ EPISODE_ID_LIST = [
 api = MissevanAPI()
 
 
-subs_re = r'<d p="\d*\.\d*,4,25,.*">(.*)</d>'
+subs_re = r'<d p="(\d*\.\d*),4,25,.*">(.*)</d>'
 
 
 def convert_to_subs(html_file, output_file):
+    subs = []
+
     with open(html_file, 'r') as source:
+        for l in source.readlines():
+            match = re.search(subs_re, l)
+            if match:
+                timestamp = Decimal(match.group(1))
+                timestamp_mod60 = divmod(timestamp, 60)
+                subtitle = match.group(2)
+                subs.append(
+                    (timestamp, f"[{timestamp_mod60[0]}:{int(timestamp_mod60[1]):02}] {subtitle}")
+                )
+
+    subs.sort(key=lambda t:t[0])
+    
+    if subs:  
         with open(output_file, 'w') as target:
-            lines = source.readlines()
-            for l in lines:
-                match = re.search(subs_re, l)
-                if match:
-                    target.write(match.group(1) + os.linesep)
+            target.write(os.linesep.join([s[1] for s in subs]))
         
             
 def download_subs(episode, name, location):
