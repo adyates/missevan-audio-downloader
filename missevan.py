@@ -8,7 +8,7 @@ BASE_URL = "https://www.missevan.com"
 
 
 class MissevanAPI:
-    def __init__(self, cookies: Dict):
+    def __init__(self, cookies: Dict = {}):
         self.cookies = cookies
 
 
@@ -27,6 +27,11 @@ class MissevanAPI:
         return drama_info
 
 
+    def get_drama_name(self, episode_id):
+        info = self.get_drama_info(episode_id)
+        return info['info']['drama']['name']
+
+
     def get_episodes(self, episode_id):
         info = self.get_drama_info(episode_id)
         return [
@@ -43,6 +48,10 @@ class MissevanAPI:
             return self.get_audio_url(episode_info["info"]["redirect"])
 
         return episode_info['info']['sound']['soundurl']
+
+
+    def get_barrage_url(self, episode_id):
+        return f"{BASE_URL}/sound/getdm?soundid={episode_id}"
 
 
     def get_comments_url(self, episode_id):

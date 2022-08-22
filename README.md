@@ -26,3 +26,13 @@ This project is capable of extracting the audio files and subtitles from audiobo
 # To run
 
 - At the command line, run `.venv/bin/python main.py`
+
+# Downloading subtitles
+
+No token required this time. You just need one episode ID per drama you wish to download.
+
+In the file `subs.py`, put those numeric values into the array, replacing the placeholder values. Make sure you leave the comma at the end of each line.
+
+At the command line, run `.venv/bin/python subs.py`
+
+You should end up with one subdirectory per drama. In it will be some `.html` files - this is the raw content downloaded from `missevan.com`, in case you need it later. Primarily, the `.txt` files are of interest as these contain the filtered subtitles.
