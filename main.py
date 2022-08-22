@@ -42,15 +42,15 @@ for a in audio_urls:
     print(f"{a['name']} ({a['id']}): {a['url']}")
 
 
-comments_urls = [
-    {
-        "id": e["id"],
-        "name": e["name"],
-        "url": api.get_comments_url(e["id"]),
-        "filename": e["name"]+ ".json",
-    }
-    for e in episode_list
-]
+#comments_urls = [
+#    {
+#        "id": e["id"],
+#        "name": e["name"],
+#        "url": api.get_comments_url(e["id"]),
+#        "filename": e["name"]+ ".json",
+#    }
+#    for e in episode_list
+#]
 
 
 print("Starting downloads")
@@ -62,12 +62,12 @@ for a in audio_urls:
     except e:
         print(f"[ERROR] {e}")
 
-for c in comments_urls:
-    print(f"Downloading {c['filename']}")
-    try:
-        download_text(c["url"], c["filename"], COOKIES)
-    except e:
-        print(f"[ERROR] {e}")
+#for c in comments_urls:
+#    print(f"Downloading {c['filename']}")
+#    try:
+#        download_text(c["url"], c["filename"], COOKIES)
+#    except e:
+#        print(f"[ERROR] {e}")
 
 
 print("==============================")

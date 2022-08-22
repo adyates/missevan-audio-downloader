@@ -1,6 +1,6 @@
 # Intro
 
-This project is capable of extracting the audio files and comments from audiobooks on the site `missevan.com`.
+This project is capable of extracting the audio files and subtitles from audiobooks on the site `missevan.com`.
 
 # Set up
 
