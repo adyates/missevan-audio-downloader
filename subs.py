@@ -15,7 +15,7 @@ EPISODE_ID_LIST = [
 api = MissevanAPI()
 
 
-subs_re = r'<d p="(\d*\.\d*),4,25,.*">(.*)</d>'
+subs_re = r'<d p="(\d*\.\d*),[2-9]\d*,25,.*">(.*)</d>'
 
 
 def convert_to_subs(html_file, output_file):
