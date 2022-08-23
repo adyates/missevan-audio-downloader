@@ -40,7 +40,7 @@ def convert_to_subs(html_file, output_file):
         
             
 def download_subs(episode, name, location):
-    output_file = f"{location}/{name}.html"
+    output_file = f"{location}/{name}.xml"
     print(f"Downloading {name} (ID: {episode})")
 
     barrage_url = api.get_barrage_url(episode)
