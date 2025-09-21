@@ -1,12 +1,24 @@
+import os
+import argparse
+from dotenv import load_dotenv
 from missevan import MissevanAPI
 from download import download_binary, download_text
 
 
+# Load environment variables from .env file
+load_dotenv()
+
+# Set up argument parser
+parser = argparse.ArgumentParser(description='Download audio episodes from Missevan')
+parser.add_argument('episode_id', 
+                    help='The episode ID to download (typically 7 digits long)')
+args = parser.parse_args()
+
 COOKIES = {
-    "token": "<TODO: Insert your token here>",
+    "token": os.getenv("TOKEN"),
 }
 
-EPISODE_ID = "<TODO: Insert the episode number here (likely 7 digits long)>"
+EPISODE_ID = args.episode_id
 
 
 api = MissevanAPI(COOKIES)
@@ -19,6 +31,7 @@ print("Episode list to process")
 print("-----------------------")
 
 episode_list = api.get_episodes(EPISODE_ID)
+drama_name = api.get_drama_name(EPISODE_ID)
 
 for e in episode_list:
     print(f"{e['id']}: {e['name']}")
@@ -38,36 +51,34 @@ audio_urls = [
     for e in episode_list
 ]
 
-for a in audio_urls:
+# Filter all audio files without a url
+valid_audio_urls = [a for a in audio_urls if a['url']]
+invalid_audio_urls = [a for a in audio_urls if not a['url']]
+
+print("\nSkipping the following audio files:")
+print("--------------------------------")
+for a in invalid_audio_urls:
     print(f"{a['name']} ({a['id']}): {a['url']}")
 
+print("\nDownloading the following audio files:")
+print("--------------------------------")
+for a in valid_audio_urls:
+    print(f"{a['name']} ({a['id']}): {a['url']}")
 
-#comments_urls = [
-#    {
-#        "id": e["id"],
-#        "name": e["name"],
-#        "url": api.get_comments_url(e["id"]),
-#        "filename": e["name"]+ ".json",
-#    }
-#    for e in episode_list
-#]
-
+# Download all of the audio files to the output directory of
+EPISODE_OUTPUT_DIRECTORY = "SavedDramas/%s/%s/"
 
 print("Starting downloads")
 print("------------------")
-for a in audio_urls:
+for a in valid_audio_urls:
     print(f"Downloading {a['filename']}")
     try:
-        download_binary(a["url"], a["filename"], COOKIES)
+        output_directory = EPISODE_OUTPUT_DIRECTORY % (drama_name, a["id"],)
+        os.makedirs(output_directory, exist_ok=True)
+
+        download_binary(a["url"], output_directory + a["filename"], COOKIES)
     except e:
         print(f"[ERROR] {e}")
-
-#for c in comments_urls:
-#    print(f"Downloading {c['filename']}")
-#    try:
-#        download_text(c["url"], c["filename"], COOKIES)
-#    except e:
-#        print(f"[ERROR] {e}")
 
 
 print("==============================")
