@@ -1,10 +1,14 @@
 import shutil
 
 import requests
+from missevan import MissevanAPI
 
 
-def download_text(url, filename, cookies={}):
-    response = requests.get(url)
+def download_text(url, filename, cookies={}, referrer=None):
+    api = MissevanAPI(cookies)
+    headers = api._get_headers(referrer)
+    
+    response = requests.get(url, headers=headers, cookies=cookies)
     if not response:
         print("ERROR")
         print(response.text)
@@ -14,8 +18,11 @@ def download_text(url, filename, cookies={}):
         f.write(response.text)
 
 
-def download_binary(url, filename, cookies={}):
-    response = requests.get(url, stream=True, cookies=cookies)
+def download_binary(url, filename, cookies={}, referrer=None):
+    api = MissevanAPI(cookies)
+    headers = api._get_headers(referrer)
+    
+    response = requests.get(url, stream=True, headers=headers, cookies=cookies)
     if not response:
         raise Exception('[ERROR] Failed to download from {url}')
 
