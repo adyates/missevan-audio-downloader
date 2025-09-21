@@ -76,7 +76,8 @@ for a in valid_audio_urls:
         output_directory = EPISODE_OUTPUT_DIRECTORY % (drama_name, a["id"],)
         os.makedirs(output_directory, exist_ok=True)
 
-        download_binary(a["url"], output_directory + a["filename"], COOKIES)
+        referrer = f"https://www.missevan.com/sound/player?id={a['id']}"
+        download_binary(a["url"], output_directory + a["filename"], COOKIES, referrer)
     except e:
         print(f"[ERROR] {e}")
 
