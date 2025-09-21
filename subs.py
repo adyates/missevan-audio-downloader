@@ -1,18 +1,28 @@
 from decimal import Decimal
 import os
 import re
+import argparse
+from dotenv import load_dotenv
 
 from missevan import MissevanAPI
 from download import download_text
 
+# Load environment variables from .env file
+load_dotenv()
 
-EPISODE_ID_LIST = [
-    "<TODO: Insert the episode number here (likely 7 digits long)>",
-    "<TODO: And another. One per drama you want to download.>",
-    "etc.",
-]
+# Set up argument parser
+parser = argparse.ArgumentParser(description='Download subtitles from Missevan')
+parser.add_argument('episode_id', 
+                    help='The episode ID to download subtitles for (typically 7 digits long)')
+args = parser.parse_args()
 
-api = MissevanAPI()
+COOKIES = {
+    "token": os.getenv("TOKEN"),
+}
+
+EPISODE_ID = args.episode_id
+
+api = MissevanAPI(COOKIES)
 
 
 subs_re = r'<d p="(\d*\.\d*),[2-9]\d*,25,.*">(.*)</d>'
@@ -40,13 +50,14 @@ def convert_to_subs(html_file, output_file):
         
             
 def download_subs(episode, name, location):
-    output_file = f"{location}/{name}.xml"
+    output_file = f"{location + name}.xml"
     print(f"Downloading {name} (ID: {episode})")
 
     barrage_url = api.get_barrage_url(episode)
-    download_text(barrage_url, output_file)
+    referrer = f"https://www.missevan.com/sound/player?id={episode}"
+    download_text(barrage_url, output_file, COOKIES, referrer)
 
-    subs_file = f"{location}/{name}.txt"
+    subs_file = f"{location + name}.txt"
     convert_to_subs(output_file, subs_file)
 
 
@@ -55,11 +66,13 @@ def download_drama(episode):
     print(f"Downloading {drama_name} (ID: {episode})")
     print(f"----------------------------------------")
 
-    output_dir = f"./{drama_name}"
-    os.makedirs(output_dir, exist_ok=True)
-
+    # Use same folder structure as main.py
+    EPISODE_OUTPUT_DIRECTORY = "SavedDramas/%s/%s/"
+    
     for e in api.get_episodes(episode):
-        download_subs(e["id"], e["name"], output_dir)
+        output_directory = EPISODE_OUTPUT_DIRECTORY % (drama_name, e["id"])
+        os.makedirs(output_directory, exist_ok=True)
+        download_subs(e["id"], e["name"], output_directory)
 
     print("")
     print(f"{drama_name}: Download complete.")
@@ -69,6 +82,4 @@ def download_drama(episode):
 print("===Missevan subs downloader===")
 print("")
 
-for episode in EPISODE_ID_LIST:
-    download_drama(episode)
-    print(api.get_drama_name(episode))
+download_drama(EPISODE_ID)
