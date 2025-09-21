@@ -1,24 +1,54 @@
-from decimal import Decimal
+import argparse
 import os
 import re
-import argparse
+from decimal import Decimal
+
 from dotenv import load_dotenv
 
-from missevan import MissevanAPI
 from download import download_text
+from missevan import MissevanAPI
 
 # Load environment variables from .env file
 load_dotenv()
 
 # Set up argument parser
-parser = argparse.ArgumentParser(description='Download subtitles from Missevan')
-parser.add_argument('episode_id', 
-                    help='The episode ID to download subtitles for (typically 7 digits long)')
+parser = argparse.ArgumentParser(description="Download subtitles from Missevan")
+parser.add_argument(
+    "episode_id",
+    help="The episode ID to download subtitles for (typically 7 digits long)",
+)
 args = parser.parse_args()
 
-COOKIES = {
-    "token": os.getenv("TOKEN"),
-}
+
+def parse_cookie_file(filename):
+    """Parse cookie file and return a cookies dictionary with URL-decoded values"""
+    import urllib.parse
+
+    cookies = {}
+    try:
+        with open(filename, "r") as f:
+            cookie_string = f.read().strip()
+            # Split by semicolon and parse each cookie
+            for cookie in cookie_string.split(";"):
+                if "=" in cookie:
+                    key, value = cookie.strip().split("=", 1)
+                    # URL decode the value
+                    decoded_value = urllib.parse.unquote(value)
+                    cookies[key] = decoded_value
+        return cookies
+    except FileNotFoundError:
+        return None
+
+
+# Try to load cookies from cookie_copy file, fallback to environment variable
+COOKIES = parse_cookie_file("cookie_copy")
+if COOKIES is None:
+    COOKIES = {
+        "token": os.getenv("TOKEN"),
+    }
+    print("Using token from environment variable")
+else:
+    print("Using cookies from cookie_copy file")
 
 EPISODE_ID = args.episode_id
 
@@ -31,7 +61,7 @@ subs_re = r'<d p="(\d*\.\d*),[2-9]\d*,25,.*">(.*)</d>'
 def convert_to_subs(html_file, output_file):
     subs = []
 
-    with open(html_file, 'r') as source:
+    with open(html_file, "r") as source:
         for l in source.readlines():
             match = re.search(subs_re, l)
             if match:
@@ -39,16 +69,19 @@ def convert_to_subs(html_file, output_file):
                 timestamp_mod60 = divmod(timestamp, 60)
                 subtitle = match.group(2)
                 subs.append(
-                    (timestamp, f"[{timestamp_mod60[0]}:{int(timestamp_mod60[1]):02}] {subtitle}")
+                    (
+                        timestamp,
+                        f"[{timestamp_mod60[0]}:{int(timestamp_mod60[1]):02}] {subtitle}",
+                    )
                 )
 
-    subs.sort(key=lambda t:t[0])
-    
-    if subs:  
-        with open(output_file, 'w') as target:
+    subs.sort(key=lambda t: t[0])
+
+    if subs:
+        with open(output_file, "w") as target:
             target.write(os.linesep.join([s[1] for s in subs]))
-        
-            
+
+
 def download_subs(episode, name, location):
     output_file = f"{location + name}.xml"
     print(f"Downloading {name} (ID: {episode})")
@@ -68,7 +101,7 @@ def download_drama(episode):
 
     # Use same folder structure as main.py
     EPISODE_OUTPUT_DIRECTORY = "SavedDramas/%s/%s/"
-    
+
     for e in api.get_episodes(episode):
         output_directory = EPISODE_OUTPUT_DIRECTORY % (drama_name, e["id"])
         os.makedirs(output_directory, exist_ok=True)
