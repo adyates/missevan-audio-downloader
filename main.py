@@ -29,9 +29,7 @@ def parse_cookie_file(filename):
             for cookie in cookie_string.split(";"):
                 if "=" in cookie:
                     key, value = cookie.strip().split("=", 1)
-                    # URL decode the value
-                    decoded_value = urllib.parse.unquote(value)
-                    cookies[key] = decoded_value
+                    cookies[key] = value
         return cookies
     except FileNotFoundError:
         return None
@@ -48,16 +46,10 @@ else:
     print("Using cookies from cookie_copy file")
 
 EPISODE_ID = args.episode_id
-
-print(COOKIES)
 api = MissevanAPI(COOKIES)
 
-print("===Missevan site ripper===")
-print("")
-
-
-print("Episode list to process")
-print("-----------------------")
+print("===Missevan site ripper===\n")
+print("Episode list to process\n-----------------------")
 
 episode_list = api.get_episodes(EPISODE_ID)
 drama_name = api.get_drama_name(EPISODE_ID)
@@ -66,9 +58,7 @@ for e in episode_list:
     print(f"{e['id']}: {e['name']}")
 
 
-print("")
-print("Audio URLs (may take a moment)")
-print("------------------------------")
+print("\nContent URLs (may take a moment)\n------------------------------")
 
 audio_urls = [
     {
@@ -80,18 +70,19 @@ audio_urls = [
     for e in episode_list
 ]
 
+image_urls = [
+    {"id": e["id"], "name": e["name"], "url": api.get_image_url(e["id"])}
+    for e in episode_list
+]
+
 # Filter all audio files without a url
 valid_audio_urls = [a for a in audio_urls if a["url"]]
-invalid_audio_urls = [a for a in audio_urls if not a["url"]]
+valid_image_urls = [i for i in image_urls if i["url"]]
 
-print("\nSkipping the following audio files:")
-print("--------------------------------")
-for a in invalid_audio_urls:
-    print(f"{a['name']} ({a['id']}): {a['url']}")
 
-print("\nDownloading the following audio files:")
+print("\nDownloading the following audio/cover files:")
 print("--------------------------------")
-for a in valid_audio_urls:
+for a in valid_audio_urls + valid_image_urls:
     print(f"{a['name']} ({a['id']}): {a['url']}")
 
 # Download all of the audio files to the output directory of
@@ -110,6 +101,17 @@ for a in valid_audio_urls:
 
         referrer = f"https://www.missevan.com/sound/player?id={a['id']}"
         download_binary(a["url"], output_directory + a["filename"], COOKIES, referrer)
+    except e:
+        print(f"[ERROR] {e}")
+
+for i in valid_image_urls:
+    print(f"Downloading {i['url']}")
+    try:
+        output_directory = EPISODE_OUTPUT_DIRECTORY % (drama_name, i["id"])
+        os.makedirs(output_directory, exist_ok=True)
+        raw_image_name = i["url"].split("/")[-1]
+        file_name = i["name"] + "." + raw_image_name.split(".")[1]
+        download_binary(i["url"], output_directory + file_name, COOKIES, referrer)
     except e:
         print(f"[ERROR] {e}")
 
